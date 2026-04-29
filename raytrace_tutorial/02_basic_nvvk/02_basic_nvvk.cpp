@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2023-2026, NVIDIA CORPORATION.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION.
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -420,7 +420,7 @@ public:
         // Teapot material
         {.baseColorFactor = glm::vec4(0.8f, 1.0f, 0.6f, 1.0f), .metallicFactor = 0.5f, .roughnessFactor = 0.5f},
         // Plane material with texture
-        {.baseColorFactor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), .metallicFactor = 0.1f, .roughnessFactor = 0.8f, .baseColorTextureIndex = 1}};
+        {.baseColorFactor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), .metallicFactor = 0.1f, .roughnessFactor = 0.8f, .baseColorTextureIndex = 0}};
 
 
     m_sceneResource.instances = {
@@ -516,7 +516,7 @@ public:
     // Update the descriptor set with the textures
     nvvk::WriteSetContainer write{};
     VkWriteDescriptorSet    allTextures =
-        m_descPack.makeWrite(shaderio::BindingPoints::eTextures, 0, 1, uint32_t(m_textures.size()));
+        m_descPack.makeWrite(shaderio::BindingPoints::eTextures, 0, 0, uint32_t(m_textures.size()));
     nvvk::Image* allImages = m_textures.data();
     write.append(allTextures, allImages);
     vkUpdateDescriptorSets(m_app->getDevice(), write.size(), write.data(), 0, nullptr);
@@ -679,6 +679,10 @@ public:
     // Change the GBuffer layout to prepare for rendering (attachment)
     nvvk::cmdImageMemoryBarrier(cmd, {m_gBuffers.getColorImage(eImgRendered), VK_IMAGE_LAYOUT_GENERAL,
                                       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
+    nvvk::cmdImageMemoryBarrier(cmd, {m_gBuffers.getDepthImage(),
+                                      VK_IMAGE_LAYOUT_UNDEFINED,
+                                      VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
+                                      {VK_IMAGE_ASPECT_DEPTH_BIT, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS}});
 
 
     // Bind the descriptor sets for the graphics pipeline (making textures available to the shaders)
@@ -735,6 +739,10 @@ public:
     vkCmdEndRendering(cmd);
     nvvk::cmdImageMemoryBarrier(cmd, {m_gBuffers.getColorImage(eImgRendered), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                                       VK_IMAGE_LAYOUT_GENERAL});
+    nvvk::cmdImageMemoryBarrier(cmd, {m_gBuffers.getDepthImage(),
+                                      VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
+                                      VK_IMAGE_LAYOUT_GENERAL,
+                                      {VK_IMAGE_ASPECT_DEPTH_BIT, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS}});
   }
 
   void onLastHeadlessFrame() override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2023-2026, NVIDIA CORPORATION.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION.
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -24,6 +24,9 @@
 // It provides common functionality and interfaces for both rasterization and ray tracing pipelines.
 // Derived classes should implement specific features and rendering logic for each tutorial step.
 //
+
+#include <string>
+#include <vector>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -146,7 +149,7 @@ public:
     m_slangCompiler.defaultTarget();
     m_slangCompiler.defaultOptions();
     m_slangCompiler.addOption({slang::CompilerOptionName::DebugInformation,
-                               {slang::CompilerOptionValueKind::Int, SLANG_DEBUG_INFO_LEVEL_MINIMAL}});
+                               {slang::CompilerOptionValueKind::Int, SLANG_DEBUG_INFO_LEVEL_STANDARD}});
     m_slangCompiler.addOption(
         {slang::CompilerOptionName::Optimization, {slang::CompilerOptionValueKind::Int, SLANG_OPTIMIZATION_LEVEL_NONE}});
 #if defined(AFTERMATH_AVAILABLE)
@@ -156,6 +159,10 @@ public:
       AftermathCrashTracker::getInstance().addShaderBinary(data);
     });
 #endif
+
+    // Adding capabilities to the Slang compiler, this will allow us to use the corresponding features in the shader code (like ray tracing, ray query, etc.)
+    for(const auto& cap : m_slangCapabilities)
+      m_slangCompiler.addCapability(cap.c_str());
 
     // Acquiring the texture sampler which will be used for displaying the GBuffer
     m_samplerPool.init(app->getDevice());
@@ -491,7 +498,7 @@ public:
     // Update the descriptor set with the textures
     nvvk::WriteSetContainer write{};
     VkWriteDescriptorSet    allTextures =
-        m_descPack.makeWrite(shaderio::BindingPoints::eTextures, 0, 1, uint32_t(m_textures.size()));
+        m_descPack.makeWrite(shaderio::BindingPoints::eTextures, 0, 0, uint32_t(m_textures.size()));
     nvvk::Image* allImages = m_textures.data();
     write.append(allTextures, allImages);
     vkUpdateDescriptorSets(m_app->getDevice(), write.size(), write.data(), 0, nullptr);
@@ -656,7 +663,7 @@ public:
   // Create Ray Trace Pipeline
   VkRayTracingPipelineCreateInfoKHR createRayTracingPipelineCreateInfo(std::span<const VkPipelineShaderStageCreateInfo> stages,
                                                                        std::span<const VkRayTracingShaderGroupCreateInfoKHR> shaderGroups,
-                                                                       uint32_t depth = 2)
+                                                                       uint32_t depth)
   {
 
     // Push constant: we want to be able to update constants used by the shaders
@@ -681,7 +688,7 @@ public:
         .pStages                      = stages.data(),
         .groupCount                   = static_cast<uint32_t>(shaderGroups.size()),
         .pGroups                      = shaderGroups.data(),
-        .maxPipelineRayRecursionDepth = std::max(2U, m_rtProperties.maxRayRecursionDepth),  // Ray depth
+        .maxPipelineRayRecursionDepth = std::min(depth, m_rtProperties.maxRayRecursionDepth),  // Ray depth
         .layout                       = m_rtPipelineLayout,
     };
     return rtPipelineInfo;
@@ -796,6 +803,10 @@ public:
     // Change the GBuffer layout to prepare for rendering (attachment)
     nvvk::cmdImageMemoryBarrier(cmd, {m_gBuffers.getColorImage(eImgRendered), VK_IMAGE_LAYOUT_GENERAL,
                                       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
+    nvvk::cmdImageMemoryBarrier(cmd, {m_gBuffers.getDepthImage(),
+                                      VK_IMAGE_LAYOUT_UNDEFINED,
+                                      VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
+                                      {VK_IMAGE_ASPECT_DEPTH_BIT, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS}});
 
     // Bind the descriptor sets for the graphics pipeline (making textures available to the shaders)
     const VkBindDescriptorSetsInfo bindDescriptorSetsInfo{.sType      = VK_STRUCTURE_TYPE_BIND_DESCRIPTOR_SETS_INFO,
@@ -865,6 +876,10 @@ public:
     vkCmdEndRendering(cmd);
     nvvk::cmdImageMemoryBarrier(cmd, {m_gBuffers.getColorImage(eImgRendered), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                                       VK_IMAGE_LAYOUT_GENERAL});
+    nvvk::cmdImageMemoryBarrier(cmd, {m_gBuffers.getDepthImage(),
+                                      VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
+                                      VK_IMAGE_LAYOUT_GENERAL,
+                                      {VK_IMAGE_ASPECT_DEPTH_BIT, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS}});
   }
 
   //---------------------------------------------------------------------------------------------------------------
@@ -885,6 +900,7 @@ protected:
   nvvk::SamplerPool      m_samplerPool{};      // Texture sampler pool, used to acquire texture samplers for images
   nvvk::GBuffer          m_gBuffers{};         // The G-Buffer
   nvslang::SlangCompiler m_slangCompiler{};    // The Slang compiler used to compile the shaders
+  std::vector<std::string> m_slangCapabilities{};  // Extra SPIR-V capabilities for hot-reload (e.g. spvRayQueryKHR); set in derived constructor
 
   // Camera manipulator
   std::shared_ptr<nvutils::CameraManipulator> m_cameraManip{std::make_shared<nvutils::CameraManipulator>()};

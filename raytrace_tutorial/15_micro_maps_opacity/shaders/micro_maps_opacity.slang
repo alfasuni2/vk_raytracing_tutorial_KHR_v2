@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2023-2026, NVIDIA CORPORATION.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION.
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -247,7 +247,7 @@ void rchitMain(inout HitPayload payload, in BuiltInTriangleIntersectionAttribute
 
   // Get base color from material or texture
   float3 albedo = material.baseColorFactor.xyz;
-  if(material.baseColorTextureIndex > 0)
+  if(material.baseColorTextureIndex > -1)
   {
     albedo *= textures[material.baseColorTextureIndex].SampleLevel(worldTexCoord, 0).xyz;
   }

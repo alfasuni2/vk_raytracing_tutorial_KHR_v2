@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2019-2025, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2026, NVIDIA CORPORATION.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * SPDX-FileCopyrightText: Copyright (c) 2019-2025, NVIDIA CORPORATION.
+ * SPDX-FileCopyrightText: Copyright (c) 2019-2026, NVIDIA CORPORATION.
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -65,10 +65,10 @@ struct TriangleMesh
 
 struct GltfMetallicRoughness
 {
-  float4 baseColorFactor;        // Base color factor (RGBA)
-  float  metallicFactor;         // Metallic factor (0.0 = non-metallic, 1.0 = metallic)
-  float  roughnessFactor;        // Roughness factor (0.0 = smooth, 1.0 = rough)
-  int    baseColorTextureIndex;  // Index of the base color texture in the GLTF file (optional)
+  float4 baseColorFactor;             // Base color factor (RGBA)
+  float  metallicFactor;              // Metallic factor (0.0 = non-metallic, 1.0 = metallic)
+  float  roughnessFactor;             // Roughness factor (0.0 = smooth, 1.0 = rough)
+  int    baseColorTextureIndex = -1;  // Index of the base color texture in the GLTF file (optional)
 };
 
 struct GltfMesh

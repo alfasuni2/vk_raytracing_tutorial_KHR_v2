@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2023-2026, NVIDIA CORPORATION.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * SPDX-FileCopyrightText: Copyright (c) 2023-2025, NVIDIA CORPORATION.
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2026, NVIDIA CORPORATION.
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -82,7 +82,8 @@ public:
 
   Rt17RayQueryScreenSpace()
   {
-    m_useRayTracing = false;  // Use rasterization for G-buffer generation, not ray tracing
+    m_useRayTracing     = false;  // Use rasterization for G-buffer generation, not ray tracing
+    m_slangCapabilities = {"spvRayQueryKHR"};
   }
   ~Rt17RayQueryScreenSpace() override = default;
 
@@ -333,6 +334,10 @@ public:
                                       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
     nvvk::cmdImageMemoryBarrier(cmd, {m_gBuffers.getColorImage(eImgHit), VK_IMAGE_LAYOUT_GENERAL,
                                       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
+    nvvk::cmdImageMemoryBarrier(cmd, {m_gBuffers.getDepthImage(),
+                                      VK_IMAGE_LAYOUT_UNDEFINED,
+                                      VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
+                                      {VK_IMAGE_ASPECT_DEPTH_BIT, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS}});
 
     // Bind the descriptor sets for the graphics pipeline (making textures and buffers available to shaders)
     const VkBindDescriptorSetsInfo bindDescriptorSetsInfo{.sType      = VK_STRUCTURE_TYPE_BIND_DESCRIPTOR_SETS_INFO,
@@ -393,6 +398,10 @@ public:
                                       VK_IMAGE_LAYOUT_GENERAL});
     nvvk::cmdImageMemoryBarrier(cmd, {m_gBuffers.getColorImage(eImgHit), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                                       VK_IMAGE_LAYOUT_GENERAL});
+    nvvk::cmdImageMemoryBarrier(cmd, {m_gBuffers.getDepthImage(),
+                                      VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
+                                      VK_IMAGE_LAYOUT_GENERAL,
+                                      {VK_IMAGE_ASPECT_DEPTH_BIT, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS}});
   }
 
   //--------------------------------------------------------------------------------------------------
