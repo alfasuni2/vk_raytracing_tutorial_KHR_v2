@@ -4,13 +4,13 @@
 
 #include "nvshaders/constants.h.slang"
 
+// Step 7.1: Enhanced Closest Hit Shader
+#include "common/shaders/pbr.h.slang"
+
 // Step 7.2: Enhanced Miss Shader
 #include "nvshaders/sky_functions.h.slang"
 
 #define MISS_DEPTH 1000
-
-// Step 7.1: Enhanced Closest Hit Shader
-#include "common/shaders/pbr.h.slang"
 
 __generic<T : IFloat> T getAttribute(uint8_t *dataBufferAddress, BufferView bufferView, uint attributeIndex)
 {
@@ -54,10 +54,10 @@ __generic<T : IFloat> T getTriangleAttribute(uint8_t *dataBufferAddress, BufferV
 float testShadow(float3 worldPos, float3 worldNormal, float3 lightDirection, GltfPunctual light)
 {
     RayDesc shadowRay;
-    shadowRay.Origin = worldPos + worldNormal * 0.001; // Offset to avoid self-intersection
+    shadowRay.Origin    = worldPos + worldNormal * 0.001; // Offset to avoid self-intersection
     shadowRay.Direction = normalize(lightDirection);
-    shadowRay.TMin = 0.001;
-    shadowRay.TMax = light.type == GltfLightType::eDirectional ? INFINITE : length(lightDirection);
+    shadowRay.TMin      = 0.001;
+    shadowRay.TMax      = light.type == GltfLightType::eDirectional ? INFINITE : length(lightDirection);
 
     // Create a simple payload for shadow ray
     HitPayload shadowPayload;
@@ -111,9 +111,6 @@ GltfPunctual processLight(GltfSceneInfo sceneInfo, float3 worldPos)
 
     return light;
 }
-
-
-
 
 // clang-format off
 // Push constants containing scene information and camera data

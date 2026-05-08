@@ -898,7 +898,7 @@ public:
     for(const shaderio::GltfInstance& instance : m_sceneResource.instances)
     {
       VkAccelerationStructureInstanceKHR asInstance{};
-      asInstance.transform                      = toTransformMatrixKHR(instance.transform);  // Position of the instance
+      asInstance.transform                      = toTransformMatrixKHR(instance.transform); // Position of the instance
       asInstance.instanceCustomIndex            = instance.meshIndex;                       // gl_InstanceCustomIndexEXT
       asInstance.accelerationStructureReference = m_blasAccel[instance.meshIndex].address;  // Address of the BLAS
       asInstance.instanceShaderBindingTableRecordOffset = 0;  // We will use the same hit group for all objects
@@ -1099,7 +1099,7 @@ public:
     m_callableRegion.stride        = 0;
     m_callableRegion.size          = 0;
 
-    LOGI("Shader binding table created and populated \n");
+    LOGI(" Shader binding table created and populated \n");
   }
 
   // Step 6.1: Create Ray Tracing Rendering Method
@@ -1264,10 +1264,7 @@ int main(int argc, char** argv)
   {
     nvvk::addSurfaceExtensions(vkSetup.instanceExtensions, &vkSetup.deviceExtensions);
   }
-
   
-
-
   // Adding control on the validation layers
   nvvk::ValidationSettings validationSettings;
   validationSettings.setPreset(nvvk::ValidationSettings::LayerPresets::eStandard);
