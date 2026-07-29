@@ -162,7 +162,7 @@ void rgenMain()
     ray.TMax = INFINITE; // Maximum distance (infinite for primary rays)
 
     // Initialize ray payload with default values
-    HitPayload payload;
+    HitPayload payload = {};
     payload.color = float3(0, 0, 0);  // Start with black
     payload.weight = 1;               // Full weight for primary rays
     payload.depth = 0;                // Start at depth 0

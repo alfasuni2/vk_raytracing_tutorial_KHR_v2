@@ -67,9 +67,9 @@ void bsdfEvaluateSimple(inout BsdfEvaluateData data, PbrBaseMaterial mat)
   }
 
   // We combine the metallic and specular lobes into a single glossy lobe.
-  // The metallic weight is     metallic *    fresnel(f0 = baseColor)
-  // The specular weight is (1-metallic) *    fresnel(f0 = c_min_reflectance)
-  // The diffuse weight is  (1-metallic) * (1-fresnel(f0 = c_min_reflectance)) * baseColor
+  // The metallic weight is      metallic *    fresnel(f0 = baseColor)
+  // The specular weight is  (1-metallic) *    fresnel(f0 = c_min_reflectance)
+  // The diffuse  weight is  (1-metallic) * (1-fresnel(f0 = c_min_reflectance)) * baseColor
 
   // Fresnel terms
   float  c_min_reflectance = 0.04F;
