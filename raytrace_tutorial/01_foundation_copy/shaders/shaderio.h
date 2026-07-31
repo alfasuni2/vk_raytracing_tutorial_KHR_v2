@@ -29,11 +29,11 @@ NAMESPACE_SHADERIO_BEGIN()
 // Binding Points
 enum BindingPoints
 {
-  eTextures = 0,  // Binding point for textures
+  eTextures = 0,	// Binding point for textures
 
   // Step 4.1: Add New Bindings
-  eOutImage,  // Binding point for output image
-  eTlas,      // Top-level acceleration structure
+  eOutImage,		// Binding point for output image
+  eTlas,			// Top-level acceleration structure
 };
 
 

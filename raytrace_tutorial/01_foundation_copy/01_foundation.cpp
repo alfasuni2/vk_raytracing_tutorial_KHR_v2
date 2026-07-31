@@ -617,11 +617,10 @@ public:
     m_sceneResource.sceneInfo.viewInvMatrix = glm::inverse(viewMatrix);  // Inverse view matrix
     
     m_sceneResource.sceneInfo.cameraPosition = m_cameraManip->getEye();  // Get the camera position
+
     m_sceneResource.sceneInfo.instances = (shaderio::GltfInstance*)m_sceneResource.bInstances.address;  // Get the address of the instance buffer
     m_sceneResource.sceneInfo.meshes = (shaderio::GltfMesh*)m_sceneResource.bMeshes.address;  // Get the address of the mesh buffer
     m_sceneResource.sceneInfo.materials = (shaderio::GltfMetallicRoughness*)m_sceneResource.bMaterials.address;  // Get the address of the material buffer
-
-
 
     // Making sure the scene information buffer is updated before rendering
     // Wait that the fragment shader is done reading the previous scene information and wait for the transfer to complete

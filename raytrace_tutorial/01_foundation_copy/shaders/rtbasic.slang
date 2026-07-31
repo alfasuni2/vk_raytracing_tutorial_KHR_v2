@@ -36,7 +36,7 @@ int3 getTriangleIndices(uint8_t *dataBufferAddress, const TriangleMesh mesh, int
         return indices[primitiveID];
     }
 
-    return int3(-1); // Error case
+    return uint3(0xFFFFFFFFu); // Error case
 }
 
 __generic<T : IFloat> T getTriangleAttribute(uint8_t *dataBufferAddress, BufferView bufferView, uint3 attributeIndex, float3 barycentrics)
@@ -60,7 +60,7 @@ float testShadow(float3 worldPos, float3 worldNormal, float3 lightDirection, Glt
     shadowRay.TMax      = light.type == GltfLightType::eDirectional ? INFINITE : length(lightDirection);
 
     // Create a simple payload for shadow ray
-    HitPayload shadowPayload;
+    HitPayload shadowPayload = {};
     shadowPayload.depth = 0;
 
     // Trace the shadow ray with optimized flags
@@ -91,22 +91,22 @@ GltfPunctual processLight(GltfSceneInfo sceneInfo, float3 worldPos)
     // Point light: calculate direction and apply distance attenuation
     if (light.type == GltfLightType::ePoint)
     {
-        light.direction = light.position - worldPos;
-        float d = length(light.direction);
+        light.direction  = light.position - worldPos;
+        float d          = length(light.direction);
         light.intensity /= (d * d); // Inverse square law
     }
     // Spot light: calculate direction, apply distance and cone attenuation
     else if (light.type == GltfLightType::eSpot)
     {
-        float3 lightDir = light.position - worldPos;
-        float d = length(lightDir);
+        float3 lightDir  = light.position - worldPos;
+        float  d         = length(lightDir);
         light.intensity /= (d * d); // Distance attenuation
 
         // Cone attenuation
-        float theta = dot(normalize(lightDir), normalize(light.direction));
+        float theta         = dot(normalize(lightDir), normalize(light.direction));
         float spotIntensity = clamp((theta - cos(light.coneAngle)) / (1.0 - cos(light.coneAngle)), 0.0, 1.0);
-        light.intensity *= spotIntensity;
-        light.direction = lightDir;
+        light.intensity    *= spotIntensity;
+        light.direction     = lightDir;
     }
 
     return light;
@@ -126,9 +126,9 @@ GltfPunctual processLight(GltfSceneInfo sceneInfo, float3 worldPos)
 // Ray payload structure - carries data through the ray tracing pipeline
 struct HitPayload
 {
-    float3 color;   // Accumulated color along the ray path
-    float  weight;  // Weight/importance of this ray (for importance sampling)
-    int    depth;   // Current recursion depth (for limiting bounces)
+    float3  color   = float3(0);    // Accumulated color along the ray path (start with black)
+    float   weight  = 1;            // Weight/importance of this ray (for importance sampling)
+    int     depth   = 0;            // Current recursion depth (for limiting bounces) (start at depth 0)
 };
 
 // Ray generation shader - entry point for each pixel
@@ -183,6 +183,11 @@ void rgenMain()
 [shader("closesthit")]
 void rchitMain(inout HitPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
+    // In a full implementation, this would:
+    // 1. Sample material properties (albedo, normal, etc.)
+    // 2. Calculate lighting (direct + indirect)
+    // 3. Potentially cast secondary rays (reflection, refraction)
+
     // Get barycentric coordinates
     float3 barycentrics = float3(1 - attr.barycentrics.x - attr.barycentrics.y, attr.barycentrics.x, attr.barycentrics.y);
 
@@ -230,6 +235,12 @@ void rchitMain(inout HitPayload payload, in BuiltInTriangleIntersectionAttribute
 [shader("miss")]
 void rmissMain(inout HitPayload payload)
 {
+    // Set background color when ray misses all geometry
+    // In a full implementation, this could sample from:
+    // - Skybox textures
+    // - Procedural sky gradients
+    // - Environment maps
+
     GltfSceneInfo sceneInfo = pushConst.sceneInfoAddress[0];
 
     if (sceneInfo.useSky == 1)
